@@ -1,0 +1,49 @@
+div.search-container
+  form(id='search-form-update' action='/api/mocktest/search' method='GET' onsubmit='return validateSearchForm(event)')
+    div.form-group
+      label(for='mtname') Mock Test Name:
+      input(type='text' id='mtname' name='mockTestName')
+      input(type='hidden' id='actiontype' name='actionType' value="search")
+    div.form-group(id='radio-group')
+      label Search Type:
+      input(type='radio' id='strict' name='searchType' value='strict')
+      label(for='strict') Strict
+      input(type='radio' id='general' name='searchType' value='general' checked)
+      label(for='general') General
+    div.form-group(id='radio-group-purpose')
+      label Select Data:
+      input(type='radio' id='deleted' name='purpose' value='deleted')
+      label(for='deleted') Deleted
+      input(type='radio' id='nondeleted' name='purpose' value='nondeleted' checked)
+      label(for='nondeleted') Not Deleted
+    div.form-group
+      button(type='submit') Search
+
+div#search-results
+
+block scripts
+  script.
+    function validateSearchForm(event) {
+      const mockTestName = document.getElementById('mtname').value;
+
+      if (!mockTestName.trim()) {
+        alert('Please fill in the mock test field.');
+        return false;
+      }
+      calSearchData(event);
+      return false;
+    }
+
+    function calSearchData(event) {
+      event.preventDefault();
+      const form = document.getElementById('search-form-update');
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+      fetch(`/api/mocktest/search?${params}`)
+        .then(response => response.text())
+        .then(html => {
+          const searchResultsContainer = document.getElementById('search-results');
+          searchResultsContainer.innerHTML = html; 
+        })
+        .catch(error => console.error('Error fetching search results:', error));
+    }

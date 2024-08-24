@@ -1,0 +1,230 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    max-height: 100vh;
+    margin: 0;
+  }
+  
+  h2 , h3 {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+
+  form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 500px;
+  }
+  
+
+  div {
+   margin: 5px 15px 15px 5px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  input[type="password"],
+  input[type="email"],
+  input[type="text"],
+  input[type="number"],
+  input[type="datetime-local"],
+  select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0e2b4b;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #f6da3f;
+    color : black;
+    font-weight: bold;
+  }
+
+  .button ~ .active {
+    background-color: #f6da3f;
+    color : black;
+    font-weight: bold;
+  }
+
+  .choice-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  .choice-row input[type="text"] {
+    flex: 1;
+    margin-right: 10px;
+  }
+  .choice-row input[type="radio"] {
+    margin-right: 5px;
+  }
+
+  #grid-container {
+     display : grid;
+     grid-gap: 10px;
+     grid-template-columns: 30% 70%;
+     grid-template-rows: 100px 1fr 100px ;
+     grid-template-areas:
+    "header header"
+    "aside main"
+    "footer  footer";
+    height: 100vh;
+  }
+
+  header {
+    grid-area : header;
+    background-color: #0a0909;
+    text-align: center;
+    color:white;
+    width: 100%; 
+    height: 100px; 
+  }
+
+  aside {
+    grid-area: aside;
+    background-color: #f6da3f;
+    padding: 10px;
+    height: calc(100vh - 200px); 
+    overflow-y: auto;
+  }
+
+  aside nav ul {
+  list-style-type: none;
+  padding: 0;
+  }
+
+  aside nav ul li {
+  margin: 10px 10px;
+  }
+
+  aside nav ul li a {
+  display: block;
+  padding: 10px;
+  background-color: #898585;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  color: #333;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s;
+  }  
+
+  aside nav ul li a:hover {
+  background-color: #333;
+  color: #fff;
+  font-weight: bold ;
+  }
+
+  main {
+    grid-area: main;
+    background-color: #f0f0f0;
+    padding: 10px;
+    overflow-y: auto; 
+  }
+
+  footer {
+    grid-area: footer;
+    background-color: #0a0909;
+    color: white;
+    width: 100%; 
+    height: 50%;
+  }
+
+@media (max-width: 768px) {
+  #grid-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 100px auto 1fr 100px;
+    grid-template-areas:
+      "header"
+      "aside"
+      "main"
+      "footer";
+  }
+
+  aside {
+    height: auto;
+  }
+}
+
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideIn {
+  0% { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
+
+.message {
+  width : 500px;
+  background-color: #36454F;
+  padding: 10px 10px;
+  text-align: center;
+  margin: 10px;
+}
+
+.highlight {
+  color: white;
+  text-decoration: underline;
+}
+
+.message-content {
+  color: brown;
+}
+
+.messageassign-content {
+  color: brown;
+}
+
+.messagesearch-content {
+  color: brown;
+}
+
+.messageqsearch-content {
+  color: brown;
+}
+
+.scrollable {
+  max-height: 900px;
+  overflow-y: auto;
+}
+
+#header-container {
+  color: white;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  animation: fadeIn 2s ease-in-out, slideIn 2s ease-in-out;
+}
+
+#mainheader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  width: 100%;
+}
+
+
+#logoimg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 10px; 
+}

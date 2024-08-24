@@ -1,0 +1,41 @@
+doctype html
+html
+  head
+    title My Application
+    link(rel="icon", type="image/png", href="/public/images/flamingo.png")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css")
+    link(rel="stylesheet" href="/public/css/user.css")
+    link(rel="stylesheet" href="/public/css/styles.css")
+    link(rel="stylesheet" href="/public/css/style.css")
+    link(rel="stylesheet" href="/public/css/modal.css")
+    script(src="/public/js/user.js")
+  body
+    div(id="grid-container")
+      header
+        include ./../partials/header.pug
+      aside
+        include ./../partials/sidebar.pug
+      main
+        div(class="button-container")
+          a(href="#" class="button" id="create-button" data-target="create") Create
+          a(href="#" class="button" id="view-button" data-target="view") View
+          a(href="#" class="button" id="delete-button" data-target="delete") Delete
+          a(href="#" class="button" id="update-button" data-target="update") Update
+          a(href="#" class="button" id="inactive-button" data-target="inactive") Inactive
+          
+        div(class="text-container")
+           h5 Search the data, then do operation such as view,delete and update and incase of email send failure, utilize the below link to generate the fresh refresh token and proceed with the steps.
+           a(href=authUrl) Click here to generate the fresh refresh token
+        div(class="message-container")
+           h3(class="message-content")=message
+        div(id="content-container")
+            include ./../user/userform.pug
+            include ./../user/view.pug
+            include ./../user/delete.pug
+            include ./../user/update.pug
+            include ./../user/inactive.pug
+        div(id="update-container")
+      footer
+        include ./../partials/footer.pug
+    block scripts
+

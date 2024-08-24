@@ -1,0 +1,34 @@
+if data.length > 0
+  table(class="question-table")
+    thead
+      tr
+        th Question Details
+        th Mock Test Details
+        th Status
+    tbody
+      each question in data
+        tr
+          td
+            div(class="question-details")
+              h4= `${question.question} (Marks: ${question.totalMarks})`
+              if question.type.toLowerCase() === 'mcq'
+                ul
+                  each choice, index in question.choices
+                    li #{index}: #{choice} 
+                div Correct Choice: #{question.correctChoice}
+              else if question.type.toLowerCase() === 'desc'
+                div Correct Answer: #{question.descriptiveAnswer}
+          td  
+            | #{question.mockTestName} 
+            br
+            | #{question.closedOn ? question.closedOn : "N/A"}
+          td
+            | MockTest Active: #{question.mactive ? 'Yes' : 'No'}
+            br
+            | Question Active: #{question.active ? 'Yes' : 'No'}
+else
+  h3(class="nodata") No questions found
+
+block scripts
+  script.
+  

@@ -1,0 +1,271 @@
+div(id="datasubmit-container")
+  div(id="buttonsubmit-container")
+    button(id="submitclosed-button" class="buttonSubmitView" type="button" onclick="fetchSubmittedMockTest('submitclosed')")  Closed to Take
+    button(id="submitopen-button" class="buttonSubmitView" type="button" onclick="fetchSubmittedMockTest('submitopen')") Open 
+
+  table(id="tablesubmit-container")
+    thead
+      tr
+        th Name
+        th Subject
+        th No of Questions
+        th Total Marks
+        th Closed On
+        th Created On
+        th Action
+    tbody(id="mocktestsubmit-container")
+  if allowAction
+    div(class="assignuser-container")
+      input(type="text" id="searchInput" placeholder="Search by username or full name")
+      div(id="usersubmit-table-container")
+    div(id="updatesubmit-container")
+
+block scripts
+  script.
+    let allSubmitUsers = [];
+      document.addEventListener('DOMContentLoaded', () => {
+        fetchSubmittedMockTest("submitopen");
+      });
+
+   function fetchSubmittedMockTest(type) {
+    let url = '';
+
+   
+    document.querySelectorAll('.buttonSubmitView').forEach(button => {
+      button.classList.remove('active');
+    });
+
+    console.log("type: " + type);
+    document.getElementById(`${type}-button`).classList.add('active');
+
+    switch (type) {
+      case 'submitclosed':
+        url = `/api/mocktest/past-due-submitmocktests`;
+        break;
+      case 'submitopen':
+        url = `/api/mocktest/recent-active-submitmocktests`;
+        break;
+    }
+
+    fetch(url)
+      .then(response => response.json())
+      .then(mocktests => {
+        const mocktestContainer = document.getElementById('mocktestsubmit-container');
+        mocktestContainer.innerHTML = '';
+
+        if (mocktests.length === 0) {
+          mocktestContainer.innerHTML = '<tr class="nodata"><td colspan="7">No Data found.</td></tr>';
+        } else {
+          mocktests.forEach(data => {
+            const mocktestRow = document.createElement('tr');
+            mocktestRow.innerHTML = `
+              <td>${data.mocktestName}</td>
+              <td>${data.subject}</td>
+              <td>${data.noofquestions}</td>
+              <td>${data.total_marks}</td>
+              <td>${new Date(data.closedOn).toLocaleString()}</td>
+              <td>${new Date(data.createDate).toLocaleString()}</td>
+              <td class="actions">
+                <button class="icon-button info-button" onclick="showDetails('${data.mocktestId}', '${type}', 'mocktest')"><i class="fas fa-info-circle"></i></button>
+                <button class="icon-button eye-button" onclick="showDetails('${data.mocktestId}', '${type}', 'question')"><i class="fas fa-eye"></i></button>
+                ${type === 'closed' ? `<button class="icon-button reopen-button" onclick="openMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-folder-open"></i></button>` : ''}
+                ${type === 'open' ? `<button class="icon-button user-button" onclick="showDetails('${data.mocktestId}', '${type}','submit')"><i class="fas fa-user"></i></button>
+                ${data.allowAction && type === 'open' ? `<button class="icon-button assign-button" onclick="assignMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-plus"></i></button>` : ''}` : ''}
+              </td>`;
+            mocktestContainer.appendChild(mocktestRow);
+          });
+        }
+      })
+      .catch(err => console.error('Error fetching mocktest:', err));
+    }
+
+    function showDetails(mocktestId, type, view) {
+    if(view === 'submit')
+    {
+      const url = `/api/mocktest/fetchmocktest/${mocktestId}`;
+    }
+    else {
+      const url = `/api/mocktest/fetchsubmit/${mocktestId}`;   
+    }
+    console.log("view" + view);
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const dataContainer = document.getElementById('datasubmit-container');
+            dataContainer.innerHTML = ''; // Clear the container first
+            let detailsTable = document.createElement('table');
+            detailsTable.classList.add('mocktesttable');
+
+            if (view === 'question') {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Question Name</th>
+                            <th>Type</th>
+                            <th>Total Marks</th>
+                            <th>Choices/Answer</th>
+                            <th>Correct Choice/Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.mocktestQuestions.map(question => `
+                            <tr>
+                                <td>${question.question_name}</td>
+                                <td>${question.type}</td>
+                                <td>${question.total_marks}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? Object.values(question.choices).join(', ') : question.correct_answer || 'N/A'}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? question.correct_choice : 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>`;
+            } else if(view === 'mocktest') {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>MockTest Name</th>
+                            <th>Subject</th>
+                            <th>Created By</th>
+                            <th>Total Questions</th>
+                            <th>Total Marks</th>
+                            <th>Created On</th>
+                            <th>Active</th>
+                            <th>Submit Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${data.mocktestName}</td>
+                            <td>${data.subject}</td>
+                            <td>${data.createdBy}</td>
+                            <td>${data.noofquestions}</td>
+                            <td>${data.total_marks}</td>
+                            <td>${new Date(data.createDate).toLocaleString()}</td>
+                            <td>${data.active ? "Yes" : "No"}</td>
+                            <td>${data.submit ? "Yes" : "No"}</td>
+                        </tr>
+                    </tbody>`;
+            }
+            else {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>MockTest Name</th>
+                            <th>Subject</th>
+                            <th>Created By</th>
+                            <th>Total Questions</th>
+                            <th>Total Marks</th>
+                            <th>Created On</th>
+                            <th> Students Assigned </th>
+                            <th> Taken Count </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${data.mocktestName}</td>
+                            <td>${data.subject}</td>
+                            <td>${data.createdBy}</td>
+                            <td>${data.noofquestions}</td>
+                            <td>${data.total_marks}</td>
+                            <td>${new Date(data.createDate).toLocaleString()}</td>
+                            <td>${data.studentsAssigned}</td>
+                            <td>${data.takenCount}</td>
+                        </tr>
+                    </tbody>`;
+            }
+            dataContainer.appendChild(detailsTable);
+        })
+        .catch(err => {
+            console.error('Error fetching mocktest details:', err);
+            dataContainer.innerHTML = '<p>Error fetching details.</p>'; 
+        });
+    }
+
+    function openMockTest(mocktestId, type) {
+      fetch(`/api/mocktest/resetMockTest/${mocktestId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchMockTest(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function assignMockTest(mocktestId, type) {
+      alert(mocktestId);
+      console.log(`Mocktest id is ${mocktestId} of type ${type}`);
+      fetch(`/api/mocktest/unassignedUsers?mocktestId=${mocktestId}`)
+      .then(response => response.json())
+      .then(unassignedUsers => {
+      allSubmitUsers = unassignedUsers; 
+      renderUserTable(allSubmitUsers, type,mocktestId);
+    })
+    .catch(error => console.error('Error fetching unassigned users:', error));
+     }
+
+    function renderUserTable(users, type,mocktestId) {
+      const userTableContainer = document.getElementById('usersubmit-table-container');
+      userTableContainer.innerHTML = ''; 
+
+      if (users.length === 0) {
+        userTableContainer.innerHTML = '<p>No unassigned users found.</p>';
+      } else {
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(user => `
+              <tr>
+                <td>${user.username}</td>
+                <td>${user.firstName} ${user.lastName}</td>
+                <td>
+                  <button class="assign-button" onclick="addUserToMockTest('${user.username}', '${mocktestId}', '${type}')">Add</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+        userTableContainer.appendChild(table);
+      }
+    }
+
+    function addUserToMockTest(username, mocktestId,type) {
+      fetch(`/api/mocktest/assignUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, mocktestId, type })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          assignMockTest(mocktestId, type);
+          fetchAssignMockTest("latestassign");
+        } else {
+          console.error('Error assigning user:', data.message);
+        }
+      })
+      .catch(error => console.error('Error assigning user:', error));
+    }
+
+

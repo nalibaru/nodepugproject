@@ -1,0 +1,82 @@
+div#search-results
+  if data.length === 1
+    h3 User Details
+    table.single-result-table
+      tr 
+        th Username
+        td #{data[0].username}
+      tr 
+        th Address
+        td #{data[0].address}
+      tr 
+        th Phone Number
+        td #{data[0].phoneNumber}
+      tr 
+        th Mail ID
+        td #{data[0].mailId}
+      tr 
+        th Created On
+        td #{data[0].createdOn}
+      tr 
+        th Joined On
+        td #{data[0].joinedOn}
+      tr 
+        th First Name
+        td #{data[0].firstName}
+      tr 
+        th Last Name
+        td #{data[0].lastName}
+      tr 
+        th Designation
+        td #{data[0].designation}
+      tr 
+        th Role
+        td #{data[0].role}
+      tr 
+        th Last Logged In
+        td #{data[0].lastLoggedIn}
+      tr 
+        th Active
+        td #{data[0].active}
+      tr 
+        th Action
+        td 
+          if data[0].actiontype === 'delete'
+            button(id="deleteButton" onclick=`deleteUser('${data[0].username}')`) Delete
+          else if data[0].actiontype === 'update'
+            button(id="updateButton" onclick=`updateUser('${data[0].username}')`) Update
+          else 
+            h5 No Action
+  else if data.length > 1
+    table.search-results-table
+      thead
+        tr
+          th Username
+          th Address
+          th Phone Number
+          th Mail ID
+          th Created On
+          th Joined On
+          th First Name
+          th Last Name
+          th Designation
+          th Role
+          th Last Logged In
+          th Active
+      tbody
+        each user in data
+          tr
+            td #{user.username}
+            td #{user.address}
+            td #{user.phoneNumber}
+            td #{user.mailId}
+            td #{user.createdOn}
+            td #{user.joinedOn}
+            td #{user.firstName}
+            td #{user.lastName}
+            td #{user.designation}
+            td #{user.role}
+            td #{user.lastLoggedIn}
+            td #{user.active}
+  else
+    h3#nodata No Data Found

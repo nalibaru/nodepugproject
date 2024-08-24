@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+    title Login
+    link(rel="icon", type="image/png", href="/public/images/flamingo.png")
+    link(rel="stylesheet" href="/public/css/style.css")
+    link(rel="stylesheet" href="/public/css/login.css")
+    script(src="/public/js/login.js")
+  body
+    div(id="login-container")
+      header
+        include ../partials/loginheader.pug
+      
+      main
+        block content
+
+      footer
+        include ../partials/footer.pug
+    block scripts

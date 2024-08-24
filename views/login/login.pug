@@ -1,0 +1,114 @@
+extends ../layout/loginlayout.pug
+
+block content
+  div(class="log-container")
+    h3(class="logmessage-content")=message
+    div(id="login-image")
+      img(src="/public/images/login.png" alt="Login Image")
+    div(class="login-form")
+      form(class="login-form-main" action="/authenticate" method="POST")
+        div(class="login-div")
+          label(for="username") Username:
+          input(type="text" id="username" name="username" value= `${username}` required)
+        div(class="login-div")
+          label(for="password") Password:
+          input(type="password" id="password" name="password" required)
+        button(type="submit") Login
+        div(class="linkcontainer")
+          a(href="#", onclick="forgotPassword(); return false;") Forgot Password
+
+    div(class="login-form" id="forgot-password-form" style="display:none;")
+      form(class="login-form-main" action="/generateToken" method="POST" onsubmit="event.preventDefault(); generateToken();")
+        div(class="login-div")
+          label(for="forgot-username") Username:
+          input(type="text" id="forgot-username" name="username" required)
+        div(class="login-div")
+          label(for="forgot-email") Email ID:
+          input(type="email" id="forgot-email" name="mailId" required)
+        button(type="submit") Generate Token
+        div(class="linkcontainer")
+          a(href="#", onclick="cancelPage(); return false;") Cancel
+
+    div(class="login-form" id="token-verification-form" style="display:none;")
+      form(class="login-form-main" action="/forgotpassword" method="POST" onsubmit="event.preventDefault(); verifyToken();")
+        div(class="login-div")
+          label(for="forgot-username") Username:
+          input(type="text" id="token-username" name="username" readonly)
+        div(class="login-div")
+          label(for="forgot-email") Email ID:
+          input(type="email" id="token-email" name="mailId" readonly)
+        div(class="login-div")
+          label(for="token") Token:
+          input(type="text" id="token" name="resetToken" required)
+        button(type="submit") Submit Token
+        div(class="linkcontainer")
+          a(href="#", onclick="cancelPage(); return false;") Cancel
+          a(href="#", onclick="regenerateToken(); return false;") Regenerate Token 
+
+block scripts
+  script.
+    function forgotPassword() {
+      document.getElementById('forgot-password-form').style.display = 'block';
+      document.getElementsByClassName('login-form')[0].style.display = 'none';
+    }
+
+    function cancelPage() {
+     window.location.href = '/login';
+    }
+
+    function regenerateToken() {
+      generateToken();
+    }
+
+    function generateToken() {
+      const username = document.getElementById('forgot-username').value;
+      const email = document.getElementById('forgot-email').value;
+
+      fetch('/generateToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, mailId: email })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const messageContainer = document.querySelector('.log-container .logmessage-content');
+        messageContainer.textContent = data.message; 
+        if (data.message === "Token Generation successful") {
+          document.getElementById('forgot-password-form').style.display = 'none';
+          document.getElementById('token-verification-form').style.display = 'block';
+          document.getElementById('token-username').value = username;
+          document.getElementById('token-email').value = email;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    function verifyToken() {
+      const username = document.getElementById('token-username').value;
+      const email = document.getElementById('token-email').value;
+      const token = document.getElementById('token').value;
+
+      fetch('/forgotpassword', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, mailId: email, resetToken: token })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.allowAccess) {
+          window.location.href = '/changepassword';
+        } else {
+          const messageContainer = document.querySelector('.log-container .logmessage-content');
+          messageContainer.textContent = data.message;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }

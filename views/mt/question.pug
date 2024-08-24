@@ -1,0 +1,103 @@
+extends .././layout/layout.pug
+
+block create
+  div(class="message")
+    h3(class="highlight") Question Form 
+    h3(class="message-content")=message
+  hr
+  a(href="/mocktest") Save and Back
+  form(method="POST" id="addQuestion" onsubmit="addQuestion(event)")
+      input(type="hidden" name="mockTestId" value=mockTestId)
+      div(id="error-container" style="color: red; display: none;")
+        // This div will display error messages
+      div
+        label(for="question") Question:
+        input(type="text" id="question" name="question" required)
+      div
+        label(for="question-type") Type:
+        select(id="question-type" name="type" onchange="handleTypeChange()" required)
+          option(value="MCQ") MCQ
+          option(value="Desc") Descriptive
+      div(id="choices-div")
+        label(for="num-choices" id="num-choices-label") Number of Choices:
+        input(type="number" id="num-choices" name="numChoices" min="1" max="10" value="4" onchange="handleNumChoicesChange()")
+      div(id="choices-container")
+        // The choices input fields will be dynamically added here
+      div
+        label(for="total-marks") Total Marks:
+        input(type="number" id="total-marks" name="totalMarks" min="1" max="200" required)
+      div
+        button(type="submit") Add Question
+  div(id="question-container")
+
+block scripts
+  script(src="/public/js/scripts.js")
+  script.
+    function showDetails(mocktestId) {
+    const url = `/api/mocktest/fetchmocktest/${mocktestId}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const dataContainer = document.getElementById('question-container');
+            dataContainer.innerHTML = ''; 
+            let detailsTable = document.createElement('table');
+            detailsTable.classList.add('mocktesttable');
+            detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Question Name</th>
+                            <th>Type</th>
+                            <th>Total Marks</th>
+                            <th>Choices/Answer</th>
+                            <th>Correct Choice/Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.mocktestQuestions.map(question => `
+                            <tr>
+                                <td>${question.question_name}</td>
+                                <td>${question.type}</td>
+                                <td>${question.total_marks}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? Object.values(question.choices).join(', ') : question.correct_answer || 'N/A'}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? question.correct_choice : 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>`;
+            dataContainer.appendChild(detailsTable);
+        })
+        .catch(err => {
+            console.error('Error fetching mocktest details:', err);
+            dataContainer.innerHTML = '<p>Error fetching details.</p>';
+        });
+    }
+
+    function addQuestion(event) {
+      event.preventDefault(); // Prevent default form submission
+       
+      const form = event.target;
+      const formData = new FormData(form);
+      console.log("formData"+formData);
+      
+      fetch('/api/mocktest/add-question', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Assuming 'mockTestId' is available in your scope
+          showDetails(formData.get('mockTestId'));
+          form.reset(); // Reset the form after successful submission
+        } else {
+          const errorContainer = document.getElementById('error-container');
+          errorContainer.style.display = 'block';
+          errorContainer.textContent = data.message;
+        }
+      })
+      .catch(err => {
+        console.error('Error adding question:', err);
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.style.display = 'block';
+        errorContainer.textContent = 'An error occurred while adding the question.';
+      });
+    }

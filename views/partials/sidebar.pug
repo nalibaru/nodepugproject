@@ -1,0 +1,11 @@
+aside
+  nav
+    ul
+      li: a(href="/dashboard") Dashboard
+      if (rolelevel === 1 || (rolelevel === 2 && role !== 'vip'))
+        li: a(href="/events") Event
+        li: a(href="/timetable") TimeTable
+      li: a(href="/mocktest") MockTest
+      if rolelevel === 1
+        li: a(href="/user") UserManagement
+      li: a(href="/logout") Log Out

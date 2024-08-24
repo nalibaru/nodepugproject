@@ -1,0 +1,170 @@
+extends .././layout/layout.pug
+
+block create
+  div(class="message")
+    h3(class="highlight") Timetable Form 
+    h3(class="message-content")=message
+  hr
+  form(action="/api/timetable/submit" method="POST")
+    div
+      label(for="day") Day:
+      select(id="day" name="day" required)
+        option(value="Monday") Monday
+        option(value="Tuesday") Tuesday
+        option(value="Wednesday") Wednesday
+        option(value="Thursday") Thursday
+        option(value="Friday") Friday
+        option(value="Saturday") Saturday
+        option(value="Sunday") Sunday
+    div
+      label(for="subject") Subject:
+      select(id="subject" name="subject" required)
+        option(value="English") English
+        option(value="Maths") Maths
+        option(value="Science") Science
+        option(value="Social") Social
+        option(value="Football") Football
+        option(value="Skating") Skating
+        option(value="French") French
+        option(value="Tamil") Tamil
+        option(value="Hindi") Hindi
+        option(value="GK") General Knowledge
+    div
+      label(for="desc") Description:
+      input(type="text" id="desc" name="desc")
+    div
+      label(for="scheduledTime") Scheduled Time:
+      input(type="text" id="scheduledTime" name="scheduledTime" required)
+    div
+      label(for="openTime") Open Time:
+      input(type="time" id="openTime" name="openTime" required)
+    div
+      label(for="closeTime") Close Time:
+      input(type="time" id="closeTime" name="closeTime" required)
+    div
+      button(type="submit") Submit
+
+block view 
+  div(class="message")
+    h3(class="highlight") View Details
+    h3(class="message-content")=message
+  hr
+  div(id="button-container")
+    button(id="yesterday-button" class="buttonView" type="button" onclick="fetchTimeTable('yesterday')") Yesterday
+    button(id="today-button" class="buttonView" type="button" onclick="fetchTimeTable('today')") Today 
+    button(id="tommorrow-button" class="buttonView" type="button" onclick="fetchTimeTable('tommorrow')") Tommorrow 
+    button(id="all-button" class="buttonView" type="button" onclick="fetchTimeTable('all')") All
+
+  table(id="table-container")
+    thead
+      tr
+        th Subject
+        th Day
+        th Description
+        th Open Time - Close Time
+        th Created On
+        th Action
+    tbody(id="timetable-container")
+      // Event rows will be populated here by JavaScript
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchTimeTable("today");
+    });
+
+    function fetchTimeTable(type) {
+      let url = '';
+      document.querySelectorAll('.buttonView').forEach(button => {
+        button.classList.remove('active');
+      });
+      document.getElementById(`${type}-button`).classList.add('active');
+
+      switch(type) {
+        case 'today':
+          url = `/api/timetable/today`;
+          break;
+        case 'yesterday':
+          url = `/api/timetable/yesterday`;
+          break;
+        case 'tommorrow':
+          url = `/api/timetable/tommorrow`;
+          break;
+        case 'all':
+          url = `/api/timetable/allByUserwithoutDeleted`;
+          break;
+      }
+
+      fetch(url)
+        .then(response => response.json())
+        .then(timetable => {
+          const timetableContainer = document.getElementById('timetable-container');
+          timetableContainer.innerHTML = '';
+
+          if (timetable.length === 0) {
+            timetableContainer.innerHTML = '<tr class="nodata"><td colspan="6">No Data found.</td></tr>';
+          } else {
+            timetable.forEach(data => {
+              const timetableRow = document.createElement('tr');
+              timetableRow.innerHTML = `
+                <td>${data.subject}</td>
+                <td>${data.day}</td>
+                <td>${data.description}</td>
+                <td>${data.time}</td>
+                <td>${new Date(data.createdOn).toLocaleString()}</td>
+                <td><button class="icon-button delete-button" onclick="${type === 'recent' ? `deleteHardTimeTable('${data.timeTableId}', '${type}')` : `deleteTimeTable('${data.timeTableId}', '${type}')`}"><i class="fas fa-trash"></i></button></td>
+              `;
+              timetableContainer.appendChild(timetableRow);
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching timetable:', err));
+    }
+
+    function deleteTimeTable(timeTableId,type) {
+      fetch(`/api/timetable/delete/${timeTableId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchTimeTable(type);
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting TimeTable');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting timeTable:', err));
+    }
+
+    function deleteHardTimeTable(timeTableId,type) {
+      fetch(`/api/timetable/delete/${timeTableId}`, {
+        method: 'POST'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchTimeTable(type); 
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting timetable');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting timetable:', err));
+    }

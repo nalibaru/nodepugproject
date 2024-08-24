@@ -1,0 +1,38 @@
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 5px;
+  }
+
+  .icon-button i {
+    font-size: 1.2em; 
+    color: #333; 
+  }
+
+  .icon-button.delete-button i {
+    color: rgb(251, 59, 59); 
+  }
+
+  .icon-button.edit-button i {
+    color: rgb(50, 50, 245); 
+  }
+
+  .icon-button.assign-button i {
+    color: rgb(4, 61, 4); 
+  }
+
+  .icon-button.info-button i {
+    color: rgb(45, 151, 45); 
+  }
+
+  .icon-button:hover i {
+    opacity: 0.7; 
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+  }

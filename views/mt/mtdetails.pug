@@ -1,0 +1,57 @@
+if data.length > 1
+  table(class="mocktesttable")
+    thead
+      tr
+        th Mock Test Name
+        th Total Marks
+        th No. of Questions
+        th Create Date
+        th Closed On
+        th Subject
+        th Active
+    tbody
+      each mt in data
+        tr
+          td= mt.mockTestName
+          td= mt.totalMarks
+          td= mt.noOfQuestions
+          td= mt.createDate
+          td= mt.closedOn
+          td= mt.subject
+          td= mt.active ? "Yes" : "No"
+else if data.length === 1
+  table(class="mocktesttable-container")
+    tr
+      th Mock Test Name
+      td= data[0].mockTestName
+    tr
+      th Total Marks
+      td= data[0].totalMarks
+    tr
+      th No. of Questions
+      td= data[0].noOfQuestions
+    tr
+      th Create Date
+      td= data[0].createDate.toLocaleDateString('en-US')
+    tr
+      th Closed On
+      td= data[0].closedOn ? data[0].closedOn.toLocaleDateString('en-US') : 'N/A'
+    tr
+      th Subject
+      td= data[0].subject
+    if data[0].mockTestQuestions
+      tr
+        th Questions
+        td
+          each question in data[0].mockTestQuestions
+            div(class="question-details")
+              h4= `${question.question_name} (Marks: ${question.total_marks})`
+              if question.type.toLowerCase() === 'mcq'
+                ul
+                  each choice, index in question.choices
+                    li #{index}: #{choice}
+                div Correct Choice: #{question.correct_choice}
+              else if question.type.toLowerCase() === 'desc'
+                div Correct Answer: #{question.correct_answer}
+else
+  h3(class="nodata") No Data Found

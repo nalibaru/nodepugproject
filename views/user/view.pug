@@ -1,0 +1,7 @@
+div#view
+  div(class="message")
+    h3(class="highlight") View User Details
+  div(id="search-view")
+     - var actiontype = 'view'
+     include ./../user/search.pug
+  div#search-results-view

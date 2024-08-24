@@ -1,0 +1,15 @@
+block form
+
+form(action="/api/events/submit" method="POST")   
+    div
+      label(for="eventName") Event Name:
+      input(type="hidden" id=`${type}-eventId` name="eventId" value=data.eventId)
+      input(type="text" id=`${type}-eventName` name="eventName" value=data.eventName required)
+    div
+      label(for="desc") Description:
+      input(type="text" id=`${type}-desc` name="desc" value=data.description)
+    div
+      label(for="scheduledDateTime") Scheduled Date & Time:
+      input(type="datetime-local" id=`${type}-scheduledDateTime` name="scheduledDateTime" value=data.scheduledDateTime required)
+    div
+      button(type="submit") Submit

@@ -1,0 +1,100 @@
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  
+  .button-container a.button {
+    flex: 1;
+    text-align: center;
+    padding: 1rem;
+    background-color: #898585;
+    color: black;
+    text-decoration: none;
+    border: 1px solid #898585;
+  }
+  
+  .button-container a.button:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  
+  .button-container a.button.active {
+    background-color: #f6da3f;
+    color: black;
+    font-weight: bold;
+  }
+  
+  #content-container > div {
+    display: none;
+  }
+  
+  #content-container > div.active {
+    display: block;
+  }
+
+
+.single-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 18px;
+  text-align: left;
+}
+
+.single-result-table th, .single-result-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.single-result-table th {
+  width: 150px;
+  background-color: #f9f9f9;
+}
+
+
+.search-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 18px;
+  text-align: left;
+}
+
+.search-results-table th, .search-results-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.search-results-table th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.search-results-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.search-results-table tbody tr:hover {
+  background-color: #ddd;
+}
+
+#nodata {
+  color: red;
+  text-align: center;
+  width: 100%;
+  height: 30px;
+  background-color: bisque;
+  padding: 10px;
+}
+
+
+.mocktesttable thead tr th, .mocktesttable tbody tr td {
+  padding: 8px;
+  text-align: left;
+}
+
+.mocktesttable thead tr th {
+  background-color: #f2f2f2;
+  color: #333;
+}

@@ -1,0 +1,17 @@
+div.search-container
+  form(id=`search-form-${actiontype}` action="/api/users/search" method="GET" onsubmit=`return validateSearchForm('search-form-${actiontype}',event)`)
+    div.form-group
+      label(for=`username-${actiontype}`) Username:
+      input(type="text" id=`username-${actiontype}` name="username")
+      input(type="hidden" id=`actiontype-${actiontype}` name="actiontype" value=actiontype)
+    div.form-group
+      label(for=`mailId-${actiontype}`) Mail ID:
+      input(type="text" id=`mailId-${actiontype}` name="mailId")
+    div.form-group
+      label Search Type:
+      input(type="radio" id=`strict-${actiontype}` name=`searchType-${actiontype}` value="strict") 
+      label(for=`strict-${actiontype}`) Strict
+      input(type="radio" id=`general-${actiontype}` name=`searchType-${actiontype}` value="general" checked) 
+      label(for=`general-${actiontype}`) General
+    div.form-group
+      button(type="submit") Search

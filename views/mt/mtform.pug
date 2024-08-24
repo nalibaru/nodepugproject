@@ -1,0 +1,358 @@
+extends .././layout/layout.pug
+
+block create
+  form(id="addDetailsForm" method="POST" onsubmit="addDetails(event)")
+    div.input-field
+      label(for="mocktest-name") Mock Test Name:
+      input(type="text" id="mocktest-name" name="mockTestName" required)
+    div.select-field
+      label(for="subject") Subject:
+      select(id="subject" name="subject" required)
+        option(value="English") English
+        option(value="Maths") Maths
+        option(value="French") French
+        option(value="Science") Science
+        option(value="GK") GK
+        option(value="Arabic") Arabic
+        option(value="Tamil") Tamil
+        option(value="Social") Social
+        option(value="Computer") Computer
+    div.input-field
+      label(for="num-questions") Number of Questions:
+      input(type="number" id="num-questions" name="noOfQuestions" min="1" max="50" required)
+    div.input-field
+      label(for="total-marks") Total Marks:
+      input(type="number" id="total-marks" name="totalMarks" min="1" max="200" required)
+    div.date-field
+      label(for="closed-on") Closed On:
+      input(type="datetime-local" id="closed-on" name="closedOn" required)
+    div
+      button(type="submit") Submit
+    
+    div(class="message-content")
+
+  div(id="content1-container")    
+    form(method="POST" id="addQuestionForm" onsubmit="addQuestion(event)")
+      input(type="hidden" id="mockTestId" name="mockTestId")
+      input(type="hidden" id="questionId" name="questionId")
+      div(id="error-container" style="color: red; display: none;")
+        // This div will display error messages
+      div
+        label(for="question") Question:
+        input(type="text" id="question" name="question" required)
+      div
+        label(for="question-type") Type:
+        select(id="question-type" name="type" onchange="handleTypeChange()" required)
+          option(value="MCQ") MCQ
+          option(value="Desc") Descriptive
+      div(id="choices-div")
+        label(for="num-choices" id="num-choices-label") Number of Choices:
+        input(type="number" id="num-choices" name="numChoices" min="1" max="10" value="4" onchange="handleNumChoicesChange()")
+      div(id="choices-container")
+        // The choices input fields will be dynamically added here
+      div
+        label(for="total-marks") Total Marks:
+        input(type="number" id="qtotal-marks" name="totalMarks" min="1" max="200" required)
+      div
+        button(type="submit") Add Question
+    
+  div(id="question-container")
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      handleTypeChange();
+      const content1 = document.getElementById('content1-container');
+      content1.style.display = 'none';
+    });
+
+    function addDetails(event) {
+      event.preventDefault(); // Prevent default form submission
+      const form = event.target;
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+
+      fetch(`/api/mocktest/submit?${params}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Server response:', data);
+        const messageContent = document.querySelector('.message-content');
+        messageContent.textContent = data.message;
+        if (data.success) {
+          form.reset(); // Reset the form after successful submission
+          const content1 = document.getElementById('content1-container');
+          content1.style.display = 'block';
+          document.getElementById('mockTestId').value = data.mockTestId; // Set the mockTestId
+          // Disable the first form fields
+          const formFields = form.querySelectorAll('input, select, button');
+          formFields.forEach(field => field.disabled = true);
+        }
+      })
+      .catch(err => {
+        console.error('Error adding mocktest:', err);
+      });
+    }
+
+    function handleTypeChange() {
+      const type = document.getElementById('question-type').value;
+      const numChoicesInput = document.getElementById('num-choices');
+      const choicesContainer = document.getElementById('choices-container');
+      const numChoicesLabel = document.getElementById('num-choices-label');
+      const numChoices = document.getElementById('num-choices').value;
+
+      choicesContainer.innerHTML = ''; // Clear previous choices
+
+      if (type === 'MCQ' && (numChoices >= 1 && numChoices <= 10)) {
+        numChoicesInput.type = 'number';
+        for (let i = 0; i < numChoices; i++) {
+          const row = document.createElement('div');
+          row.className = 'choice-row';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.name = `choice${i + 1}`;
+          input.placeholder = `Choice ${i + 1}`;
+          input.required = true;
+          input.oninput = function () {
+            const radio = document.getElementById(`choice-radio${i + 1}`);
+            radio.value = this.value;
+          };
+          row.appendChild(input);
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = `correctChoice`;
+          //radio.value = `choice${i + 1}`;
+          radio.id = `choice-radio${i + 1}`;
+          radio.required = true;
+          row.appendChild(radio);
+          const label = document.createElement('label');
+          label.textContent = ` Correct Choice ${i + 1}`;
+          row.appendChild(label);
+          choicesContainer.appendChild(row);
+        }
+      } else if (type === 'Desc') {
+        numChoicesInput.type = 'hidden';
+        numChoicesLabel.textContent = 'Enter Answer:';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'description';
+        input.placeholder = 'Enter Answer';
+        input.required = true;
+        choicesContainer.appendChild(input);
+      } else {
+        validateForm();
+      }
+    }
+
+    function handleNumChoicesChange() {
+      handleTypeChange();
+    }
+
+    function displayError(message) {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.innerHTML = message;
+      errorContainer.style.display = 'block';
+    }
+
+    function clearError() {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.innerHTML = '';
+      errorContainer.style.display = 'none';
+    }
+
+    function validateForm(event) {
+      clearError();
+      const type = document.getElementById('question-type').value;
+      const numChoices = document.getElementById('num-choices').value;
+      const totalMarks = document.getElementById('qtotal-marks').value;
+
+      if (type === 'MCQ' && (numChoices < 1 || numChoices > 10)) {
+        displayError("Number of choices must be between 1 and 10.");
+        event.preventDefault();
+        return false;
+      }
+
+      if (totalMarks < 1 || totalMarks > 200) {
+        displayError("Total marks must be between 1 and 200.");
+        event.preventDefault();
+        return false;
+      }
+
+      if (type === 'MCQ') {
+        const choices = document.getElementsByName('correctChoice');
+        let selected = false;
+        for (let i = 0; i < choices.length; i++) {
+          if (choices[i].checked) {
+            selected = true;
+            break;
+          }
+        }
+        if (!selected) {
+          displayError("Please select a correct choice.");
+          event.preventDefault();
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    function addQuestion(event) {
+      event.preventDefault(); // Prevent default form submission
+      const form = event.target;
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+      fetch(`/api/mocktest/add-question?${params}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showDetails(formData.get('mockTestId'));
+          form.reset(); // Reset the form after successful submission
+          document.getElementById('question-type').value = 'MCQ'; // Reset the question type to default
+          document.getElementById('questionId').value = ''; // Reset the question Id to empty
+          handleTypeChange(); // Reset the choices
+        } else {
+          const errorContainer = document.getElementById('error-container');
+          errorContainer.style.display = 'block';
+          errorContainer.textContent = data.message;
+        }
+      })
+      .catch(err => {
+        console.error('Error adding question:', err);
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.style.display = 'block';
+        errorContainer.textContent = 'An error occurred while adding the question.';
+      });
+    }
+
+    function showDetails(mocktestId) {
+    const url = `/api/mocktest/fetchmocktest/${mocktestId}`;
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      const dataContainer = document.getElementById('question-container');
+      dataContainer.innerHTML = ''; 
+      let detailsTable = document.createElement('table');
+      detailsTable.classList.add('table-container');
+      
+      if (data.mocktestQuestions && data.mocktestQuestions.length > 0) {
+        detailsTable.innerHTML = `
+          <thead>
+            <tr>
+              <th>Question Name</th>
+              <th>Type</th>
+              <th>Total Marks</th>
+              <th>Choices/Answer</th>
+              <th>Correct Choice/Answer</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="mocktest-container">
+            ${data.mocktestQuestions.map(question => `
+              <tr>
+                <td>${question.question_name}</td>
+                <td>${question.type}</td>
+                <td>${question.total_marks}</td>
+                <td>${question.type.toLowerCase() === 'mcq' ? Object.values(question.choices).join(', ') : 'N/A'}</td>
+                <td>${question.type.toLowerCase() === 'mcq' ? question.correct_choice : question.correct_answer || 'N/A'}</td>
+                <td class="actions">
+                  <button class="icon-button edit-button" onclick="editQuestion('${question.question_id}','${mocktestId}')"><i class="fas fa-edit"></i></button>
+                  <button class="icon-button delete-button" onclick="deleteQuestion('${question.question_id}', '${mocktestId}')"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>`;
+      } else {
+        detailsTable.innerHTML = `
+          <thead>
+            <tr>
+              <th>Question Name</th>
+              <th>Type</th>
+              <th>Total Marks</th>
+              <th>Choices/Answer</th>
+              <th>Correct Choice/Answer</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="nodata">
+              <td colspan="6">No data found</td>
+            </tr>
+          </tbody>`;
+      }
+
+      dataContainer.appendChild(detailsTable);
+    })
+    .catch(err => {
+      console.error('Error fetching mocktest details:', err);
+      dataContainer.innerHTML = '<p>Error fetching details.</p>';
+    });
+   }
+
+   function editQuestion(questionId, mocktestId) {
+   const url = `/api/mocktest/fetchQuestion/${questionId}`;
+   fetch(url)
+    .then(response => response.json())
+    .then(question => {
+      // Ensure question object exists and has necessary properties
+      if (question) {
+        document.getElementById('questionId').value = question.questionId;
+        document.getElementById('mockTestId').value = mocktestId;
+        document.getElementById('question').value = question.question || '';
+        document.getElementById('question-type').value = question.type || '';
+        document.getElementById('qtotal-marks').value = question.totalMarks || '';
+
+        const questionType = question.type.toLowerCase();
+
+        if (questionType === 'mcq') {
+          document.getElementById('num-choices').value = question.numChoices || 4; // Default to 4 if not specified
+          handleTypeChange();
+
+          // Populate choices
+          if (question.questionDetails) {
+            for (let i = 0; i < question.numChoices; i++) {
+              const choiceInput = document.querySelector(`input[name='choice${i + 1}']`);
+              const radioInput = document.getElementById(`choice-radio${i + 1}`);
+              if (choiceInput) {
+                choiceInput.value = question.questionDetails[`choice_${i + 1}`] || '';
+                radioInput.value = choiceInput.value; // Set the radio button value
+              }
+            }
+          }
+
+          // Set the correct choice radio button
+          if (question.correct_choice !== undefined && question.correct_choice !== null) {
+            const correctChoiceInput = document.querySelector(`input[type='radio'][value='${question.correct_choice}']`);
+            if (correctChoiceInput) {
+              correctChoiceInput.checked = true;
+            }
+          }
+        } else if (questionType === 'desc') {
+          handleTypeChange();
+          document.querySelector(`input[name='description']`).value = question.answer || '';
+        }
+      } else {
+        console.error('Question data is missing or incomplete.');
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching question details:', err);
+    });
+    }
+
+    function deleteQuestion(questionId, mocktestId) {
+      if (confirm('Are you sure you want to delete this question permanently?')) {
+        fetch(`/api/mocktest/questdelete/${questionId}`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showDetails(mocktestId);
+            } else {
+              alert('Failed to delete the question');
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    }

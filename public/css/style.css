@@ -1,0 +1,426 @@
+.tabs {
+  display: flex;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+}
+
+.tablink {
+  background-color: #FF7F50;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: background-color 0.3s, color 0.3s, transform 0.3s;
+  text-align: left;
+  width: 100%;
+  margin-bottom: 5px;
+  color:black;
+  border-radius: 0px;
+}
+
+.tablink:hover {
+  color: black;
+  transform: scale(1.05);
+}
+
+.tablink.active {
+  background-color: #50C878;
+  font-weight: bold;
+  color :white;
+  border: 2px solid #000080;
+}
+
+.tabcontent-container {
+  flex-grow: 1;
+}
+
+.tabcontent {
+  display: none;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.tabcontent.active {
+  display: block;
+}
+
+#button-container {
+  background-color: #f6da3f;
+  display: flex;
+  flex-direction: row;
+}
+
+.buttonView {
+  background-color: #f6da3f;
+  color : black;
+  font-weight: bold;
+}
+
+.buttonView.active {
+  background-color: #352e02;
+  color : rgb(246, 237, 237);
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+.buttonView:hover {
+  background-color: #36454F;
+  color : white;
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+#button-container {
+  background-color: #f6da3f;
+  display: flex;
+  flex-direction: row;
+}
+
+.buttonView {
+  background-color: #f6da3f;
+  color : black;
+  font-weight: bold;
+}
+
+.buttonView.active {
+  background-color: #352e02;
+  color : rgb(246, 237, 237);
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+.buttonView:hover {
+  background-color: #36454F;
+  color : white;
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+#buttonassign-container {
+  background-color: #f6da3f;
+  display: flex;
+  flex-direction: row;
+}
+
+.buttonAssignView {
+  background-color: #f6da3f;
+  color : black;
+  font-weight: bold;
+}
+
+.buttonAssignView.active {
+  background-color: #352e02;
+  color : rgb(246, 237, 237);
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+.buttonAssignView:hover {
+  background-color: #36454F;
+  color : white;
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+
+#buttonsubmit-container {
+  background-color: #f6da3f;
+  display: flex;
+  flex-direction: row;
+}
+
+.buttonSubmitView {
+  background-color: #f6da3f;
+  color : black;
+  font-weight: bold;
+}
+
+.buttonSubmitView.active {
+  background-color: #352e02;
+  color : rgb(246, 237, 237);
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+.buttonSubmitView:hover {
+  background-color: #36454F;
+  color : white;
+  font-weight: bold;
+  border-radius: 0px;
+}
+
+
+/* Table Styles */
+#table-container , .table-container {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+  border: 2px solid #0e2b4b; 
+}
+
+#table-container thead th, .table-container thead th {
+  color: black;
+  padding: 12px 15px;
+}
+
+#table-container tbody tr td , .table-container tbody tr td{
+  padding: 12px 15px;
+}
+
+#table-container tbody tr td .delete-button , .table-container tbody tr td .delete-button {
+  /* background-color: #e74c3c; */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+table tbody tr td .delete-button:hover {
+  color: black;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#tableassign-container {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+  border: 2px solid #0e2b4b; 
+}
+
+#tableassign-container thead th {
+  color: black;
+  padding: 12px 15px;
+}
+
+#tableassign-container tbody tr td {
+  padding: 12px 15px;
+}
+
+#tableassign-container tbody tr td .delete-button {
+  color: white;
+  border: none;
+  padding: 2px 2px;
+  margin: 5px 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#tableassign-container tbody tr td .undo-button {
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 2px 2px;
+  margin: 5px 5px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+#tablesubmit-container {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+  border: 2px solid #0e2b4b;
+}
+
+#tablesubmit-container thead th {
+  color: black;
+  padding: 12px 15px;
+}
+
+#tablesubmit-container tbody tr td {
+  padding: 12px 15px;
+}
+
+#tablesubmit-container tbody tr td .delete-button {
+  /* background-color: #e74c3c; */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.nodata {
+  text-align: center;
+  color: #c0392b;
+  font-size: large;
+  font-weight: bold;
+}
+
+tr.nodata {
+  text-align: center;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #090000;
+}
+
+form#search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+}
+
+.form-group label {
+  width: 150px;
+  margin-right: 1rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="radio"] {
+  margin-right: 1rem;
+}
+
+.form-group button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form-group button:hover {
+  background-color: #0056b3;
+}
+
+#user-profile-table {
+  width: 100%;
+  max-width: 600px; 
+  border-collapse: collapse;
+  margin: 20px auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#user-profile-table th, #user-profile-table td {
+  padding: 12px 20px; 
+  text-align: left; 
+  border-bottom: 1px solid #ccc; 
+}
+
+#user-profile-table th {
+  background-color: #f4f4f4;
+  color: #333; 
+  font-weight: bold; 
+}
+
+#user-profile-table td {
+  background-color: #fff; 
+}
+
+#table-highlight {
+  color: brown;
+  font-weight: bold;
+}
+
+
+.mocktesttable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+}
+
+.mocktesttable th, .mocktesttable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.mocktesttable th {
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+.mocktesttable-container {
+  width: 80%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.mocktesttable-container th, .mocktesttable-container td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.mocktesttable-container th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.question-details {
+  border: 1px solid #ccc;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.question-details h4 {
+  margin-top: 0;
+}
+
+.question-details ul {
+  padding-left: 20px;
+}
+
+.question-table {
+  width: 100%;
+  border-collapse: collapse; 
+  table-layout: fixed; 
+  background-color: #f9f9f9; 
+}
+
+.question-table th, .question-table td {
+  border: 1px solid #ddd;
+  padding: 10px; 
+  text-align: left; 
+}
+
+.question-table th {
+  background-color: #4CAF50; 
+  color: white; 
+  font-size: 16px; 
+}
+
+.question-table td {
+  background-color: white; 
+  color: #333; 
+  font-size: 14px; 
+}
+
+.question-details {
+  margin-bottom: 10px;
+}

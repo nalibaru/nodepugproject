@@ -1,0 +1,397 @@
+extends .././layout/layout.pug
+
+block create
+  div(class="message")
+    h3(class="highlight") Event Form 
+    h3(class="message-content")=message
+  hr
+  include ./eventform.pug
+
+block view 
+  div(class="message")
+    h3(class="highlight") View Details 
+    h3(class="message-content")=message
+  hr
+  div(id="button-container")
+    button(id="today-button" class="buttonView" type="button" onclick="fetchEvents('today')") Today Event 
+    button(id="latest-button" class="buttonView" type="button" onclick="fetchEvents('latest')") Latestly created
+    button(id="recent-button" class="buttonView" type="button" onclick="fetchEvents('recent')") Recently Deleted
+    button(id="all-button" class="buttonView" type="button" onclick="fetchEvents('all')") All
+
+  table(id="table-container")
+    thead
+      tr
+        th Event Name
+        th Description
+        th Date
+        th Time
+        th Created On
+        th Action
+    tbody(id="events-container")
+      // Event rows will be populated here by JavaScript
+  if allowAction
+    div(class="assignuser-container")
+      input(type="text" id="searchInput" placeholder="Search by username or full name")
+      div(id="user-table-container")
+        // User table will be rendered here
+    div(id="update-container")
+
+block assign 
+  div(class="message")
+    h3(class="highlight") Assigned Events 
+    h3(class="message-content")=message
+  hr
+  div(id="buttonassign-container")
+    button(id="todayassign-button" class="buttonAssignView" type="button" onclick="fetchAssignedEvents('todayassign')") Today Assigned Event 
+    button(id="latestassign-button" class="buttonAssignView" type="button" onclick="fetchAssignedEvents('latestassign')") Latestly Assigned
+    button(id="recentdelete-button" class="buttonAssignView" type="button" onclick="fetchAssignedEvents('recentdelete')") Recently Deleted
+    button(id="allassign-button" class="buttonAssignView" type="button" onclick="fetchAssignedEvents('allassign')") All
+
+  table(id="tableassign-container")
+    thead
+      tr
+        th Event Name
+        th Assigned To
+        th Assigned By
+        th Assigned Date
+        th Action
+    tbody(id="assigned-container")
+      // Event rows will be populated here by JavaScript
+
+block scripts
+  script.
+    let allUsers = [];
+    let eventAssignedId = "";
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchEvents("latest");
+      fetchAssignedEvents("latestassign");
+      document.getElementById('searchInput').addEventListener('input', filterUsers);
+    });
+    
+    function fetchEvents(type) {
+      let url = '';
+      const assignDiv = document.getElementsByClassName('assignuser-container')[0];
+      
+      const userTableDiv = document.getElementById('user-table-container');
+      document.querySelectorAll('.buttonView').forEach(button => {
+        button.classList.remove('active');
+      });
+
+      document.getElementById(`${type}-button`).classList.add('active');
+
+      switch(type) {
+        case 'today':
+          url = `/api/events/today`;
+          if(assignDiv && userTableDiv)
+          {
+          assignDiv.style.display = 'block';
+          userTableDiv.innerHTML = '';
+          }  
+          
+          allUsers = '';
+          break;
+        case 'latest':
+          url = `/api/events/latest`;
+          if(assignDiv && userTableDiv)
+          {
+          assignDiv.style.display = 'block';
+          userTableDiv.innerHTML = '';
+          }
+          
+          allUsers = '';
+          break;
+        case 'recent':
+          url = `/api/events/recent`;
+          if(assignDiv && userTableDiv)
+          {
+          assignDiv.style.display = 'none';
+          userTableDiv.innerHTML = '';
+          }
+          
+          allUsers = '';
+          break;
+        case 'all':
+          url = `/api/events/allByUserwithoutDeleted`;
+          if(assignDiv && userTableDiv)
+          {
+          assignDiv.style.display = 'block';
+          userTableDiv.innerHTML = '';
+          }
+          
+          allUsers = '';
+          break;
+      }
+
+      fetch(url)
+        .then(response => response.json())
+        .then(events => {
+          const eventsContainer = document.getElementById('events-container');
+          eventsContainer.innerHTML = '';
+
+          if (events.length === 0) {
+            eventsContainer.innerHTML = '<tr class="nodata"><td colspan="6">No events found.</td></tr>';
+          } else {
+            events.forEach(event => {
+              const eventRow = document.createElement('tr');
+              eventRow.innerHTML = `
+                <td>${event.title}</td>
+                <td>${event.description}</td>
+                <td>${event.date}</td>
+                <td>${event.time}</td>
+                <td>${new Date(event.createdOn).toLocaleString()}</td>
+                <td class="actions">
+                ${type !== 'recent' ? `
+                <button class="icon-button edit-button" onclick="editEvent('${event.eventId}', '${type}')"><i class="fas fa-edit"></i></button>
+                ${event.allowAction ? `<button class="icon-button assign-button" onclick="assignEvent('${event.eventId}', '${type}')"><i class="fas fa-plus"></i></button>` : ''}` : ''}
+                ${type === 'recent' ? `<button class="icon-button delete-button" onclick="deleteHardEvent('${event.eventId}', '${type}')"><i class="fas fa-trash"></i></button>` : `<button class="icon-button delete-button" onclick="deleteEvent('${event.eventId}', '${type}')"><i class="fas fa-trash"></i></button>`}
+                 </td>`;
+              eventsContainer.appendChild(eventRow);
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching events:', err));
+    }
+
+    function fetchAssignedEvents(type) {
+      let url = '';
+      document.querySelectorAll('.buttonAssignView').forEach(button => {
+        button.classList.remove('active');
+      });
+      console.log("type"+type);
+      document.getElementById(`${type}-button`).classList.add('active');
+
+      switch(type) {
+        case 'todayassign':
+          url = `/api/events/todayassign`;
+          break;
+        case 'latestassign':
+          url = `/api/events/latestassign`;
+          break;
+        case 'recentdelete':
+          url = `/api/events/recentdelete`;
+          break;
+        case 'allassign':
+          url = `/api/events/allassignnotdeleted`;
+          break;
+      }
+
+      fetch(url)
+        .then(response => response.json())
+        .then(groupedEvents => {
+          const assignedContainer = document.getElementById('assigned-container');
+          assignedContainer.innerHTML = '';
+
+          if (Object.keys(groupedEvents).length === 0) {
+            assignedContainer.innerHTML = '<tr class="nodata"><td colspan="5">No Assigned Events found.</td></tr>';
+          } else {
+            Object.keys(groupedEvents).forEach(eventName => {
+              const events = groupedEvents[eventName];
+              events.forEach((event, index) => {
+                const eventRow = document.createElement('tr');
+                eventRow.innerHTML = `
+                  <td>${index === 0 ? event.eventName : ''}</td>
+                  <td>${event.assignedTo}</td>
+                  <td>${event.assignedBy}</td>
+                  <td>${new Date(event.assignedOn).toLocaleString()}</td>
+                  <td class="actions">
+                    <button class="icon-button delete-button" onclick="${type === 'recentdelete' ? `deleteAssignedHardEvent('${event.assignId}', '${type}')` : `deleteAssignedEvent('${event.assignId}', '${type}')`}"><i class="fas fa-trash"></i></button>
+                  </td>
+                `;
+                assignedContainer.appendChild(eventRow);
+              });
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching assigned events:', err));
+    }
+
+    function deleteEvent(eventId, type) {
+      fetch(`/api/events/delete/${eventId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchEvents(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function deleteHardEvent(eventId, type) {
+      fetch(`/api/events/delete/${eventId}`, {
+        method: 'POST'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchEvents(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function deleteAssignedEvent(assignId, type) {
+      fetch(`/api/events/deleteassign/${assignId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchAssignedEvents(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function deleteAssignedHardEvent(assignId, type) {
+      fetch(`/api/events/deleteassign/${assignId}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+         if (data.message === 'Assignment deleted') {
+          fetchAssignedEvents(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+
+    function editEvent(eventId,type) {
+      
+         if (eventId) {
+          fetch(`/api/events/getDetails?eventId=${eventId}`)
+          .then(response => response.json())
+          .then(data => {
+          if (data.html) {
+          document.getElementById('update-container').innerHTML = data.html;
+          } else {
+          alert(data.message || 'Error fetching user details');
+          }
+          })
+          .catch(err => {
+          console.error(err);
+          alert('Error fetching user details');
+        });
+      }
+     } 
+
+    function assignEvent(eventId, type) {
+      //alert(eventId);
+      //console.log(`Assign event ${eventId} of type ${type}`);
+      fetch(`/api/events/unassignedUsers?eventId=${eventId}`)
+      .then(response => response.json())
+      .then(unassignedUsers => {
+      allUsers = unassignedUsers; 
+      eventAssignedId = eventId;
+      renderUserTable(allUsers, type,eventId);
+    })
+    .catch(error => console.error('Error fetching unassigned users:', error));
+     }
+
+    function renderUserTable(users, type,eventAssignedId) {
+      const userTableContainer = document.getElementById('user-table-container');
+      userTableContainer.innerHTML = ''; 
+
+      if (users.length === 0) {
+        userTableContainer.innerHTML = '<p>No unassigned users found.</p>';
+      } else {
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(user => `
+              <tr>
+                <td>${user.username}</td>
+                <td>${user.firstName} ${user.lastName}</td>
+                <td>
+                  <button class="assign-button" onclick="addUserToEvent('${user.username}', '${eventAssignedId}', '${type}')">Add</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+        userTableContainer.appendChild(table);
+      }
+    }
+
+   function filterUsers() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const filteredUsers = allUsers.filter(user =>
+    user.username.toLowerCase().includes(searchInput) ||
+    `${user.firstName.toLowerCase()} ${user.lastName.toLowerCase()}`.includes(searchInput)
+      );
+    renderUserTable(filteredUsers,'latestassign',eventAssignedId);
+    }
+
+    function addUserToEvent(username, eventId,type) {
+      fetch(`/api/events/assignUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, eventId, type })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          assignEvent(eventId, type);
+          fetchAssignedEvents("latestassign");
+        } else {
+          console.error('Error assigning user:', data.message);
+        }
+      })
+      .catch(error => console.error('Error assigning user:', error));
+    }

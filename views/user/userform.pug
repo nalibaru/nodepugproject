@@ -1,0 +1,52 @@
+div(id="create")
+  div(class="message")
+    h3(class="highlight")=title
+  div(class="form-wrapper")
+    form(action="/api/users/submit" method="POST" onsubmit=`return validateUserForm('${type}')`)
+      input(type="hidden" id="userId" name="userId" value=data.userId)
+      div
+        label(for="username") Username:
+        if title === 'Update User'
+          input(type="text" id=`${type}-username` name="username-display" value=data.username disabled)
+          input(type="hidden" id="hidden-username" name="username" value=data.username)
+        else 
+          input(type="text" id=`${type}-username` name="username" value=data.username required)  
+      div
+        label(for="password") Password:
+        if title === 'Update User'
+          input(type="password" id=`${type}-password` name="password"  value=data.password disabled)
+        else
+          input(type="password" id=`${type}-password` name="password" required)
+      div
+        label(for="firstName") First Name:
+        input(type="text" id=`${type}-firstName` name="firstName" value=data.firstName required)
+      div
+        label(for="lastName") Last Name:
+        input(type="text" id=`${type}-lastName` name="lastName" value=data.lastName required)
+      div
+        label(for="designation") Designation:
+        input(type="text" id=`${type}-designation` name="designation" value=data.designation required)
+      div
+        label(for="role") Role:
+        select(id=`${type}-role` name="role" required)
+          option(value="admin" selected=data.role=='admin') Admin
+          option(value="teacher" selected=data.role=='teacher') Teacher
+          option(value="student" selected=data.role=='student') Student
+          option(value="special" selected=data.role=='special') Special
+          option(value="guest" selected=data.role=='guest') Guest
+          option(value="vip" selected=data.role=='vip') VIP
+          option(value="vvip" selected=data.role=='vvip') VVIP
+      div
+        label(for="address") Address:
+        input(type="text" id=`${type}-address` name="address" value=data.address required)
+      div
+        label(for="phoneNumber") Phone Number:
+        input(type="text" id=`${type}-phoneNumber` name="phoneNumber" value=data.phoneNumber required)
+      div
+        label(for="mailId") Email:
+        input(type="email" id=`${type}-mailId` name="mailId" value=data.mailId required)
+      div
+        label(for="active") Active:
+        input(type="checkbox" id=`${type}-active` name="active" checked=data.active=='true' required)
+      div
+        button(type="submit")=title

@@ -1,0 +1,43 @@
+extends ../layout/layout.pug
+
+block create
+  h2 Welcome to FlaMinGo Application
+  h5 Dear #{username}
+  h5 Please select a component from the sidebar.
+  if !allowAction 
+     h5 Few Access are blocked for you...
+
+block view
+
+  if userdata
+    table#user-profile-table
+      tbody
+        tr
+          th Username
+          td#table-highlight= userdata.username
+        tr
+          th First Name
+          td= userdata.firstName
+        tr
+          th Last Name
+          td= userdata.lastName
+        tr
+          th Designation
+          td= userdata.designation
+        tr
+          th Address
+          td= userdata.address
+        tr
+          th Phone Number
+          td= userdata.phoneNumber
+        tr
+          th Email
+          td= userdata.mailId
+        tr
+          th Joined Date
+          td= userdata.joinedDate || "NA"
+        tr
+          th Last Logged In
+          td= userdata.lastLoggedIn
+  else
+    p No data available.

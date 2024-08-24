@@ -1,0 +1,50 @@
+#search-results {
+    margin: 2rem;
+  }
+  
+  .single-result {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .single-result p {
+    margin: 0.5rem 0;
+  }
+  
+  .single-result strong {
+    display: inline-block;
+    width: 150px;
+  }
+  
+  #search-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  #search-results-table, #search-results-table th, #search-results-table td {
+    border: 1px solid #ccc;
+  }
+  
+  #search-results-table th, #search-results-table td {
+    padding: 0.5rem;
+    text-align: left;
+  }
+  
+  #search-results-table thead {
+    background-color: #f4f4f4;
+  }
+  
+  #search-results-table tbody {
+    max-height: 400px;
+    overflow-y: auto;
+    display: block;
+  }
+  
+  #search-results-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }

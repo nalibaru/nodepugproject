@@ -1,0 +1,50 @@
+div.search-container
+  form(id=`qsearch-form-update` method="GET" onsubmit=`return validateQuestionSearchForm(event)`)
+    div.form-group
+      label(for=`searchquestion`) Question:
+      input(type="text" id=`searchquestion` name="question")
+      input(type="hidden" id=`qactiontype` name="actiontype" value="search")
+    div.form-group(id=`qradio-group`)
+      label Search Type:
+      input(type="radio" id="qstrict" name="searchType" value="strict") 
+      label(for="qstrict") Strict
+      input(type="radio" id=`qgeneral` name="searchType" value="general" checked) 
+      label(for="qgeneral") General
+    div.form-group(id=`qradio-group`)
+      label Select Data:
+      input(type="radio" id=`qdeleted` name="purpose" value="deleted") 
+      label(for="qdeleted") Deleted
+      input(type="radio" id=`qnondeleted` name="purpose" value="nondeleted" checked) 
+      label(for="qnondeleted") Not Deleted
+    div.form-group
+      button(type="submit") Search
+
+div#qsearch-results
+
+block scripts
+  script.
+    function validateQuestionSearchForm(event) {
+      const question = document.getElementById('searchquestion').value;
+      if (!question.trim()) {
+        alert('Please fill in the question field.');
+        return false;
+      }
+      calQuestionSearchData(event);
+      return false;
+    }
+
+    function calQuestionSearchData(event) {
+      event.preventDefault();
+      const form = document.getElementById('qsearch-form-update');
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+      fetch(`/api/mocktest/searchquestion?${params}`)
+        .then(response => response.text())
+        .then(html => {
+          const searchResultsContainer = document.getElementById('qsearch-results');
+          searchResultsContainer.innerHTML = html; 
+        })
+        .catch(error => console.error('Error fetching search results:', error));
+    }
+
+    

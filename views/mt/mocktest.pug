@@ -1,0 +1,897 @@
+extends .././layout/layout.pug
+
+block create
+  .message
+    h3.highlight MockTest Form
+  hr
+  h4 Please create the mock test and add questions. You can also assign the mock test to others.
+  h4
+    a(href="/mocktest1") Click here to create mocktest
+
+block view
+  .message
+    h3.highlight View MockTest Details
+    h3.message-content= message
+  hr
+  #data-container
+  #formdata-container(style="display:none;")
+    form(action="/api/mocktest/submit" id="addDetails" method="POST" onsubmit="addDetails(event)")
+      .input-field
+        label(for="mocktest-name") Mock Test Name:
+        input(type="text" id="mocktest-name" name="mockTestName" required)
+        input(type="hidden" id="mockTestId" name="mockTestId")
+      .select-field
+        label(for="subject") Subject:
+        select(id="subject" name="subject" required)
+          option(value="English") English
+          option(value="Maths") Maths
+          option(value="French") French
+          option(value="Science") Science
+          option(value="GK") GK
+          option(value="Arabic") Arabic
+          option(value="Tamil") Tamil
+          option(value="Social") Social
+          option(value="Computer") Computer
+      .input-field
+        label(for="num-questions") Number of Questions:
+        input(type="number" id="num-questions" name="noOfQuestions" min="1" max="50" required)
+      .input-field
+        label(for="total-marks") Total Marks:
+        input(type="number" id="total-marks" name="totalMarks" min="1" max="200" required)
+      .date-field
+        label(for="closed-on") Closed On:
+        input(type="datetime-local" id="closed-on" name="closedOn" required)
+      div
+        button(type="submit") Submit
+  
+  #question-container(style="display: none;")
+    form(method="POST" id="addQuestionForm" onsubmit="addQuestion(event)")
+      input(type="hidden" id="questionmockTestId" name="mockTestId")
+      input(type="hidden" id="questionId" name="questionId")
+      input(type="hidden" id="typeValue" name="typeValue")
+      div(id="error-container" style="color: red; display: none;")
+       
+      div
+        label(for="question") Question:
+        input(type="text" id="question" name="question" required)
+      div
+        label(for="question-type") Type:
+        select(id="question-type" name="type" onchange="handleTypeChange()" required)
+          option(value="MCQ") MCQ
+          option(value="Desc") Descriptive
+      div(id="choices-div")
+        label(for="num-choices" id="num-choices-label") Number of Choices:
+        input(type="number" id="num-choices" name="numChoices" min="1" max="10" value="4" onchange="handleNumChoicesChange()")
+      div(id="choices-container")
+       
+      div
+        label(for="total-marks") Total Marks:
+        input(type="number" id="qtotal-marks" name="totalMarks" min="1" max="200" required)
+      div
+        button(type="submit") Add Question
+
+  div(id="button-container")
+    button(id="closed-button" class="buttonView" type="button" onclick="fetchMockTest('closed')") Closed
+    button(id="open-button" class="buttonView" type="button" onclick="fetchMockTest('open')") Open 
+    button(id="deleted-button" class="buttonView" type="button" onclick="fetchMockTest('deleted')") Deleted 
+    button(id="all-button" class="buttonView" type="button" onclick="fetchMockTest('all')") All
+
+  table(id="table-container")
+    thead
+      tr
+        th Name
+        th Subject
+        th No of Questions
+        th Total Marks
+        th Closed On
+        th Created On
+        th Action
+    tbody(id="mocktest-container")
+     
+  if allowAction
+    div(class="assignuser-container")
+      input(type="text" id="searchInput" placeholder="Search by username or full name")
+      div(id="user-table-container")
+       
+    div(id="update-container")
+
+block assign 
+  div(class="message")
+    h3(class="highlight") Assign MockTest Details
+    h3(class="messageassign-content")=message
+  hr
+  div(id="buttonassign-container")
+    button(id="todayassign-button" class="buttonAssignView" type="button" onclick="fetchAssignMockTest('todayassign')") Assigned Today
+    button(id="latestassign-button" class="buttonAssignView" type="button" onclick="fetchAssignMockTest('latestassign')") Latestly Assigned 
+    button(id="recentdelete-button" class="buttonAssignView" type="button" onclick="fetchAssignMockTest('recentdelete')") Deleted 
+    button(id="allassign-button" class="buttonAssignView" type="button" onclick="fetchAssignMockTest('allassign')") All
+
+  table(id="tableassign-container")
+    thead
+      tr
+        th Mock Test Name
+        th Assign To
+        th Assign By
+        th Assigned On
+        th Action
+    tbody(id="mocktestassign-container")
+      // MT rows will be populated here by JavaScript
+
+block search 
+  div(class="message")
+    h3(class="highlight") Search MockTest Details
+  hr/
+  include search.pug
+
+block questsearch 
+  div(class="message")
+    h3(class="highlight") Search Question Details
+    h3.questmessage-content= message
+  hr/
+  include questionsearch.pug
+
+block submit
+  div(class="message")
+    h3(class="highlight") Submitted Details
+  hr/
+  include mtsubmitted.pug
+
+ 
+block scripts
+  script.
+    let allUsers = [];
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchMockTest("open");
+        fetchAssignMockTest("latestassign");
+        handleTypeChange();
+      });
+
+   function fetchMockTest(type) {
+    let url = '';
+    document.querySelectorAll('.buttonView').forEach(button => {
+      button.classList.remove('active');
+    });
+
+    console.log("type: " + type);
+    document.getElementById(`${type}-button`).classList.add('active');
+    switch (type) {
+      case 'closed':
+        url = `/api/mocktest/past-due-mocktests`;
+        break;
+      case 'open':
+        url = `/api/mocktest/recent-active-mocktests`;
+        break;
+      case 'deleted':
+        url = `/api/mocktest/inactive-mocktests`;
+        break;
+      case 'all':
+        url = `/api/mocktest/allByUserwithoutDeleted`;
+        break;
+    }
+
+    fetch(url)
+      .then(response => response.json())
+      .then(mocktests => {
+        const mocktestContainer = document.getElementById('mocktest-container');
+        mocktestContainer.innerHTML = '';
+
+        if (mocktests.length === 0) {
+          mocktestContainer.innerHTML = '<tr class="nodata"><td colspan="7">No Data found.</td></tr>';
+        } else {
+          mocktests.forEach(data => {
+            const mocktestRow = document.createElement('tr');
+            mocktestRow.innerHTML = `
+              <td>${data.mocktestName}</td>
+              <td>${data.subject}</td>
+              <td>${data.noofquestions}</td>
+              <td>${data.total_marks}</td>
+              <td>${new Date(data.closedOn).toLocaleString()}</td>
+              <td>${new Date(data.createDate).toLocaleString()}</td>
+              <td class="actions">
+                <button class="icon-button info-button" onclick="showDetails('${data.mocktestId}', '${type}', 'mocktest')"><i class="fas fa-info-circle"></i></button>
+                <button class="icon-button eye-button" onclick="showDetails('${data.mocktestId}', '${type}', 'question')"><i class="fas fa-eye"></i></button>
+                ${type === 'closed' ? `<button class="icon-button reopen-button" onclick="openMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-folder-open"></i></button>` : ''}
+                ${type === 'deleted' ? `<button class="icon-button undo-button" onclick="undoMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-undo"></i></button>
+                <button class="icon-button delete-button" onclick="deleteHardMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-xmark"></i></button>` : ''}
+                ${type === 'all' || type === 'open' ? `<button class="icon-button edit-button" onclick="editMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-edit"></i></button>
+                <button class="icon-button delete-button" onclick="deleteMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-trash"></i></button>
+                <button class="icon-button add-button" onclick="addQuestionMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-link"></i></button>
+                ${data.allowAction ? `<button class="icon-button assign-button" onclick="assignMockTest('${data.mocktestId}', '${type}')"><i class="fas fa-plus"></i></button>` : ''}` : ''}
+              </td>`;
+            mocktestContainer.appendChild(mocktestRow);
+          });
+        }
+      })
+      .catch(err => console.error('Error fetching mocktest:', err));
+    }
+     
+    function addDetails(event) {
+      event.preventDefault(); // Prevent default form submission
+      const form = event.target;
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+
+      fetch(`/api/mocktest/submit?${params}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        const messageContent = document.querySelector('.message-content');
+        messageContent.textContent = data.message;
+        if (data.success) {
+          form.reset(); 
+          const formcontent = document.getElementById('formdata-container');
+          formcontent.style.display = 'none';
+          document.getElementById('mockTestId').value = '';
+          const formFields = form.querySelectorAll('input, select, button');
+          formFields.forEach(field => field.disabled = true);
+        }
+      })
+      .catch(err => {
+        console.error('Error adding mocktest:', err);
+      });
+    }
+
+    function addQuestion(event) {
+      event.preventDefault(); // Prevent default form submission
+      const form = event.target;
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData).toString();
+      fetch(`/api/mocktest/add-question?${params}`, {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+
+          form.reset(); 
+          document.getElementById('question-type').value = 'MCQ'; 
+          document.getElementById('questionmockTestId').value = ''; 
+           document.getElementById('questionId').value = '';
+          handleTypeChange(); 
+          const content1 = document.getElementById('question-container');
+          content1.style.display = 'none';
+          const messageContent = document.querySelector('.message-content');
+          messageContent.textContent = data.message;
+          const mocktestId = data.question.mockTestId;
+          if(data.message === "Question updated successfully!"){
+               const view = "question";
+               const type = data.typeValue;
+               showDetails(mocktestId, type, view);
+          }
+        } else {
+          const errorContainer = document.getElementById('error-container');
+          errorContainer.style.display = 'block';
+          errorContainer.textContent = data.message;
+        }
+      })
+      .catch(err => {
+        console.error('Error adding question:', err);
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.style.display = 'block';
+        errorContainer.textContent = 'An error occurred while adding the question.';
+      });
+    }
+
+    function fetchAssignMockTest(type) {
+      let url = '';
+
+      document.querySelectorAll('.buttonAssignView').forEach(button => {
+        button.classList.remove('active');
+      });
+
+      document.getElementById(`${type}-button`).classList.add('active');
+
+      switch(type) {
+        case 'todayassign':
+          url = `/api/mocktest/todayassign`;
+          break;
+        case 'latestassign':
+          url = `/api/mocktest/latestassign`;
+          break;
+        case 'recentdelete':
+          url = `/api/mocktest/recentdelete`;
+          break;
+        case 'allassign':
+          url = `/api/mocktest/allassignnotdeleted`;
+          break;
+      }
+
+      fetch(url)
+        .then(response => response.json())
+        .then(groupedMockTest => {
+          const assignedContainer = document.getElementById('mocktestassign-container');
+          assignedContainer.innerHTML = '';
+
+          if (Object.keys(groupedMockTest).length === 0) {
+            assignedContainer.innerHTML = '<tr class="nodata"><td colspan="5">No Assigned MockTest found.</td></tr>';
+          } else {
+            Object.keys(groupedMockTest).forEach(mockTestName => {
+              const mocktests = groupedMockTest[mockTestName];
+              mocktests.forEach((mt, index) => {
+                const mtRow = document.createElement('tr');
+                mtRow.innerHTML = `
+                  <td>${index === 0 ? mt.mockTestName : ''}</td>
+                  <td>${mt.assignedTo}</td>
+                  <td>${mt.assignedBy}</td>
+                  <td>${new Date(mt.assignedOn).toLocaleString()}</td>
+                  <td class="actions">
+                    ${type === 'recentdelete' ? `<button class="icon-button undo-button" onclick="undoAssignMockTest('${mt.assignId}', '${type}')"><i class="fas fa-undo"></i></button>` : ''}
+                    <button class="icon-button delete-button" onclick="${type === 'recentdelete' ? `deleteAssignedHardMT('${mt.assignId}', '${type}')` : `deleteAssignedMT('${mt.assignId}', '${type}')`}"><i class="fas fa-trash"></i></button>
+                  </td>
+                `;
+                assignedContainer.appendChild(mtRow);
+              });
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching assigned MockTest:', err));
+    }
+
+    function editMockTest(mocktestId,type) {
+    const url = `/api/mocktest/fetchmocktest/${mocktestId}`;
+    fetch(url)
+    .then(response => response.json())
+    .then(mockTestData => {
+      if (mockTestData) {
+        document.getElementById('mockTestId').value = mockTestData.mocktestId || '';
+        document.getElementById('mocktest-name').value = mockTestData.mocktestName || '';
+        document.getElementById('subject').value = mockTestData.subject || '';
+        document.getElementById('num-questions').value = mockTestData.noofquestions || '';
+        document.getElementById('total-marks').value = mockTestData.total_marks || '';
+        document.getElementById('closed-on').value = mockTestData.closedOn ? new Date(mockTestData.closedOn).toISOString().slice(0, 16) : '';
+        // Display the form container
+        document.getElementById('formdata-container').style.display = 'block';
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching mock test details:', err);
+    });
+   }
+    
+    function undoAssignMockTest(assignId, type) {
+    fetch(`/api/mocktest/undoAssignMockTest/${assignId}`, {
+    method: 'PUT'
+    })
+    .then(response => response.json())  // Parse the response as JSON
+    .then(data => {
+    //alert(type);
+    // Assuming `data.message` contains the success message
+    const messageContent = document.querySelector('.messageassign-content');
+    messageContent.textContent = data.message;
+    // Ensure fetchAssignMockTest exists and is called properly
+       if (typeof fetchAssignMockTest === 'function') {
+         fetchAssignMockTest(type);
+        } else {
+        console.error('fetchAssignMockTest is not defined or not a function.');
+       }
+      })
+    .catch(error => {
+     console.error('Error undoing assignment:', error);
+     const messageContent = document.querySelector('.message-content');
+     messageContent.textContent = 'Failed to undo assignment. Please try again.';
+     });
+   }
+
+
+    function deleteMockTest(mocktestId, type) {
+      fetch(`/api/mocktest/deactivate/${mocktestId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchMockTest(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function openMockTest(mocktestId, type) {
+      fetch(`/api/mocktest/resetMockTest/${mocktestId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchMockTest(type);  // Refresh the events list
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function deleteHardMockTest(mocktestId, type) {
+      fetch(`/api/mocktest/delete/${mocktestId}`, {
+        method: 'POST'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchMockTest(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function addQuestionMockTest(mockTestId,type) {
+    document.getElementById('questionmockTestId').value = mockTestId;
+    document.getElementById('typeValue').value = type;
+    const content1 = document.getElementById('formdata-container');
+    content1.style.display = 'none';
+    const dataContainer = document.getElementById('data-container');
+    dataContainer.innerHTML = ''; 
+    const content2 = document.getElementById('question-container');
+    content2.style.display = 'block';
+    }
+
+    function undoMockTest(mocktestId, type)
+    {
+     fetch(`/api/mocktest/undoMockTest/${mocktestId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchMockTest(type); 
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+    function deleteAssignedMT(assignId,type)
+    {
+      fetch(`/api/mocktest/deleteAssign/${assignId}`, {
+        method: 'PUT'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchAssignMockTest(type);
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+
+    function deleteAssignedHardMT(assignId,type)
+    {
+      fetch(`/api/mocktest/deleteAssign/${assignId}`, {
+        method: 'POST'
+      })
+      .then(response => {
+        if (response.ok) {
+          fetchAssignMockTest(type);  
+          return fetch('/api/session-message');
+        } else {
+          alert('Error deleting event');
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          const messageElements = document.getElementsByClassName('message-content');
+          Array.from(messageElements).forEach(element => {
+            element.textContent = data.message;
+          });
+        }
+      })
+      .catch(err => console.error('Error deleting event:', err));
+    }
+
+
+    function showDetails(mocktestId, type, view) {
+    const url = `/api/mocktest/fetchmocktest/${mocktestId}`;
+    console.log("view" + view);
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const dataContainer = document.getElementById('data-container');
+            dataContainer.innerHTML = ''; 
+            let detailsTable = document.createElement('table');
+            detailsTable.classList.add('mocktesttable');
+
+            if (view === 'question' && (data.mocktestQuestions && data.mocktestQuestions.length > 0)) {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Question Name</th>
+                            <th>Type</th>
+                            <th>Total Marks</th>
+                            <th>Choices/Answer</th>
+                            <th>Correct Choice/Answer</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.mocktestQuestions.map(question => `
+                            <tr>
+                                <td>${question.question_name}</td>
+                                <td>${question.type}</td>
+                                <td>${question.total_marks}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? Object.values(question.choices).join(', ') : question.correct_answer || 'N/A'}</td>
+                                <td>${question.type.toLowerCase() === 'mcq' ? question.correct_choice : 'N/A'}</td>
+                                <td> 
+                                  <button class="icon-button edit-button" onclick="displayQuestionForEdit('${mocktestId}','${question.question_id}','${type}')">
+                                  <i class="fas fa-edit"></i>
+                                  </button>
+                                  ${question.active ? `
+                                  <button class="icon-button delete-button" onclick="deleteQuestion('${mocktestId}','${question.question_id}','${type}')">
+                                  <i class="fas fa-trash"></i>
+                                  </button>
+                                   ` : `
+                                  <button class="icon-button undo-button" onclick="revertDeleteQuestion('${mocktestId}','${question.question_id}','${type}')">
+                                  <i class="fas fa-undo"></i>
+                                  </button>`}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>`;
+            } else if (view === 'question' && (data.mocktestQuestions.length === 0 || data.mocktestQuestions.length === [])) {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Question Name</th>
+                            <th>Type</th>
+                            <th>Total Marks</th>
+                            <th>Choices/Answer</th>
+                            <th>Correct Choice/Answer</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="nodata">
+                            <td colspan="6">No data found</td>
+                        </tr>
+                    </tbody>`;
+            } else {
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>MockTest Name</th>
+                            <th>Subject</th>
+                            <th>Created By</th>
+                            <th>Total Questions</th>
+                            <th>Total Marks</th>
+                            <th>Created On</th>
+                            <th>Active</th>
+                            <th>Submit Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${data.mocktestName}</td>
+                            <td>${data.subject}</td>
+                            <td>${data.createdBy}</td>
+                            <td>${data.noofquestions}</td>
+                            <td>${data.total_marks}</td>
+                            <td>${new Date(data.createDate).toLocaleString()}</td>
+                            <td>${data.active ? "Yes" : "No"}</td>
+                            <td>${data.submit ? "Yes" : "No"}</td>
+                        </tr>
+                    </tbody>`;
+            } 
+            dataContainer.appendChild(detailsTable);
+        })
+        .catch(err => {
+            console.error('Error fetching mocktest details:', err);
+            dataContainer.innerHTML = '<p>Error fetching details.</p>'; 
+        });
+    }
+
+
+    function assignMockTest(mocktestId, type) {
+      fetch(`/api/mocktest/unassignedUsers?mocktestId=${mocktestId}`)
+      .then(response => response.json())
+      .then(unassignedUsers => {
+      allUsers = unassignedUsers; 
+      renderUserTable(allUsers, type,mocktestId);
+    })
+    .catch(error => console.error('Error fetching unassigned users:', error));
+     }
+
+    function renderUserTable(users, type,mocktestId) {
+      const userTableContainer = document.getElementById('user-table-container');
+      userTableContainer.innerHTML = ''; 
+
+      if (users.length === 0) {
+        userTableContainer.innerHTML = '<p>No users found.</p>';
+      } else {
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(user => `
+              <tr>
+                <td>${user.username}</td>
+                <td>${user.firstName} ${user.lastName}</td>
+                <td>
+                  <button class="assign-button" onclick="addUserToMockTest('${user.username}', '${mocktestId}', '${type}')">Add</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+        userTableContainer.appendChild(table);
+      }
+    }
+
+    function addUserToMockTest(username, mocktestId,type) {
+      fetch(`/api/mocktest/assignUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, mocktestId, type })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          assignMockTest(mocktestId, type);
+          fetchAssignMockTest("latestassign");
+        } else {
+          console.error('Error assigning user:', data.message);
+        }
+      })
+      .catch(error => console.error('Error assigning user:', error));
+    }
+
+    function handleTypeChange() {
+    const type = document.getElementById('question-type').value;
+    const choicesDiv = document.getElementById('choices-div');
+    const numChoicesInput = document.getElementById('num-choices');
+    const choicesContainer = document.getElementById('choices-container');
+    const numChoicesLabel =  document.getElementById('num-choices-label');
+    const numChoices = document.getElementById('num-choices').value;
+    
+    choicesContainer.innerHTML = ''; // Clear previous choices
+
+    if (type === 'MCQ' && (numChoices >= 1 && numChoices <= 10)) {
+      numChoicesInput.type = 'text';
+      const numChoices = numChoicesInput.value;
+      for (let i = 0; i < numChoices; i++) {
+        const row = document.createElement('div');
+        row.className = 'choice-row';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = `choice${i + 1}`;
+        input.placeholder = `Choice ${i + 1}`;
+        input.required = true;
+         input.oninput =  function () {
+          const radio = document.getElementById(`choice-radio${i + 1}`);
+          radio.value = this.value;
+        };
+        row.appendChild(input);
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `correctChoice`;
+        radio.value = `choice${i + 1}`;
+        radio.id = `choice-radio${i + 1}`;
+        radio.required = true;
+        row.appendChild(radio);
+        const label = document.createElement('label');
+        label.textContent = ` Correct Choice ${i + 1}`;
+        row.appendChild(label);
+        choicesContainer.appendChild(row);
+      }
+    } else if(type === 'Desc') {
+      numChoicesInput.type = 'hidden';
+      numChoicesLabel.textContent = 'Enter Answer:';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = 'description';
+      input.placeholder = 'Enter Answer';
+      input.required = true;
+      choicesContainer.appendChild(input);
+    } else {
+      validateForm();
+    }
+    }
+
+    function handleNumChoicesChange() {
+      handleTypeChange();
+     }
+
+    function displayError(message) {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.innerHTML = message;
+      errorContainer.style.display = 'block';
+     } 
+
+    function clearError() {
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.innerHTML = '';
+    errorContainer.style.display = 'none';
+    }
+
+    function validateForm(event) {
+    clearError();
+    const type = document.getElementById('question-type').value;
+    const numChoices = document.getElementById('num-choices').value;
+    const totalMarks = document.getElementById('total-marks').value;
+
+    if (type === 'MCQ' && (numChoices < 1 || numChoices > 10)) {
+      displayError("Number of choices must be between 1 and 10.");
+      event.preventDefault();
+      return false;
+    }
+
+    if (totalMarks < 1 && totalMarks > 200) {
+      displayError("Total marks must be between 1 and 200.");
+      event.preventDefault();
+      return false;
+    }
+
+    if (type === 'MCQ') {
+      const choices = document.getElementsByName('correctChoice');
+      let selected = false;
+      for (let i = 0; i < choices.length; i++) {
+        if (choices[i].checked) {
+          selected = true;
+          break;
+        }
+      }
+      if (!selected) {
+        displayError("Please select a correct choice.");
+        event.preventDefault();
+          return false;
+        }
+      }
+      return true;
+    }
+     
+    function displayQuestionForEdit(mocktestId,questionId,type)
+    {
+    const content2 = document.getElementById('question-container');
+    content2.style.display = 'block';
+    editQuestion(mocktestId,questionId,type);
+    }
+
+    function editQuestion(mocktestId,questionId,type) {
+      const url = `/api/mocktest/fetchQuestion/${questionId}`;
+      fetch(url)
+      .then(response => response.json())
+      .then(question => {
+      // Ensure question object exists and has necessary properties
+      if (question) {
+        document.getElementById('questionId').value = question.questionId;
+        document.getElementById('questionmockTestId').value = mocktestId;
+        document.getElementById('question').value = question.question || '';
+        document.getElementById('question-type').value = question.type || '';
+        document.getElementById('qtotal-marks').value = question.totalMarks || '';
+        document.getElementById('typeValue').value = type;
+        const questionType = question.type.toLowerCase();
+
+        if (questionType === 'mcq') {
+          document.getElementById('num-choices').value = question.numChoices || 4; // Default to 4 if not specified
+          handleTypeChange();
+
+          // Populate choices
+          if (question.questionDetails) {
+            for (let i = 0; i < question.numChoices; i++) {
+              const choiceInput = document.querySelector(`input[name='choice${i + 1}']`);
+              const radioInput = document.getElementById(`choice-radio${i + 1}`);
+              if (choiceInput) {
+                choiceInput.value = question.questionDetails[`choice_${i + 1}`] || '';
+                radioInput.value = choiceInput.value; // Set the radio button value
+              }
+            }
+          }
+
+          // Set the correct choice radio button
+          if (question.correct_choice !== undefined && question.correct_choice !== null) {
+            const correctChoiceInput = document.querySelector(`input[type='radio'][value='${question.correct_choice}']`);
+            if (correctChoiceInput) {
+              correctChoiceInput.checked = true;
+            }
+          }
+        } else if (questionType === 'desc') {
+          handleTypeChange();
+          document.querySelector(`input[name='description']`).value = question.answer || '';
+        }
+      } else {
+        console.error('Question data is missing or incomplete.');
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching question details:', err);
+    });
+    }
+
+    function deleteQuestion(mockTestId,questionId,type)
+    {
+      if (confirm('Are you sure you want to delete this question?')) {
+        fetch(`/api/mocktest/questiondelete/${questionId}`, { method: 'PUT' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              const messageContent = document.querySelector('.message-content');
+              messageContent.textContent = data.message;
+              showDetails(mockTestId,type,"question");
+            } else {
+              alert('Failed to delete the question');
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    }
+
+    function revertDeleteQuestion(mockTestId,questionId,type)
+    {
+      if (confirm('Are you sure you want to revert the deletion of this question?')) {
+        fetch(`/api/mocktest/undoQuestion/${questionId}`, { method: 'PUT' })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              const messageContent = document.querySelector('.message-content');
+               messageContent.textContent = data.message;
+               showDetails(mockTestId,type,"question");
+            } else {
+              alert('Failed to revert the deletion of the question');
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    }
