@@ -119,7 +119,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/theme', themeRoutes);
 app.use('/', auth);
 // Static files
-app.use('/public', express.static('public'));
+//app.use('/public', express.static('public'));
 //app.use(express.static('public'));
 
 app.get('/login', loginClearance, (req, res) => {
